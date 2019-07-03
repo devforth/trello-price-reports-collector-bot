@@ -15,7 +15,7 @@ TRELLO_OAUTH_TOKEN
 TRELLO_BOARD_NAME
 ```
 
-In each comments it seraches for expenses on some products:
+In each comment it seraches for expenses on some products:
 
 ```
 Arabica Coffe -11.00
