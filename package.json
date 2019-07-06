@@ -7,9 +7,10 @@
     "@slack/interactive-messages": "^1.1.1",
     "@slack/web-api": "^5.0.1",
     "dotenv": "^8.0.0",
+    "excel4node": "^1.7.2",
     "express": "^4.17.1",
-    "trello": "^0.9.1",
-    "trello-node-api": "0.0.7"
+    "moment": "^2.24.0",
+    "trello": "^0.9.1"
   },
   "devDependencies": {},
   "scripts": {

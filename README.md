@@ -23,6 +23,7 @@ Command connects to Trello and searches for comments in specified Board
 
 Basically you need to start `node index.js` and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
 
+If you want to host locally for testing purposes use: `ngrok http {PORT}`
 
 To get `TRELLO_BOARD_ID`
 
