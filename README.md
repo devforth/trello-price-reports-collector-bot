@@ -17,6 +17,13 @@ In each comment it seraches for expenses on some products. Then it generates rep
 
 Command connects to Trello and searches for comments in specified Board
 
+
+
+# How to deploy bot
+
+Basically you need to start `node index.js` and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
+
+
 To get `TRELLO_BOARD_ID`
 
 Get board link
@@ -27,9 +34,3 @@ replace `/office` with `/reports.json` and visit link, e.g. :
 https://trello.com/b/12daFy0n/reports.json
 
 first `id` param will be board id
-
-# How to deploy bot
-
-Basically you need to start `node index.js` and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
-
-
