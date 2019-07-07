@@ -1,6 +1,6 @@
 # trello-price-reports-collector-bot
 
-Bot which shows report collected from trello specified Board comments for current or previous month:
+Bot which shows expenses (or profits) report collected from trello specified Board comments for current or previous month:
 
 ```
 Arabica Coffee -11.00
