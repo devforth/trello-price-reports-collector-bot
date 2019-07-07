@@ -5,5 +5,4 @@ RUN npm ci
 
 # Bundle app source
 COPY . .
-EXPOSE 8589
 CMD [ "node", "index.js" ]
