@@ -28,6 +28,10 @@ You also need to add 2 actions:
 
 ![](https://maketips.net/media/uploads/2019/07/07/pvzKRu5V7tSu7DJncm22kE-3e72e872.png)
 
+Get tokens here:
+
+![](https://maketips.net/media/uploads/2019/07/07/dG7znV7bXf87SeKfrew7pP-6ac86ced.png)
+
 To get `TRELLO_BOARD_ID`
 
 Get board link
