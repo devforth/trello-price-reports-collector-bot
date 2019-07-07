@@ -72,7 +72,7 @@ server {
   location /trellocollector {
       proxy_http_version 1.1;
       proxy_set_header Connection "";
-      proxy_pass http://slackcollectorbot:8589/;
+      proxy_pass http://slackcollectorbot:8589/trellocollector;
   }
 }
 ```
