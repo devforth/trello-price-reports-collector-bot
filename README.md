@@ -28,10 +28,6 @@ You also need to add 2 actions:
 
 ![](https://maketips.net/media/uploads/2019/07/07/pvzKRu5V7tSu7DJncm22kE-3e72e872.png)
 
-Get tokens here:
-
-![](https://maketips.net/media/uploads/2019/07/07/dG7znV7bXf87SeKfrew7pP-6ac86ced.png)
-
 To get `TRELLO_BOARD_ID`
 
 Get board link
@@ -52,6 +48,8 @@ We have also Dockerfile. If you are using docker-compose you can write config li
     build: ../trello-price-reports-collector-bot
     environment:
       - SLACK_SIGNING_SECRET=xxxxxxxxxxxxxxxxxxxxxx
+      
+      # !!!!!!!! TODO replace with client id and secret
       - SLACK_OAUTH_TOKEN=xoxp-xxxxxxxxx-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx 
       - SLACK_BOT_OAUTH_TOKEN=xoxb-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx
       - TRELLO_BOARD_ID=xxxxxxxxxxxxxxxxxxxxxx
@@ -63,6 +61,11 @@ We have also Dockerfile. If you are using docker-compose you can write config li
     restart: always
     ports:
       - "8589:8589"  # for security specify ports only if you have no proxy behind, this will expose ports outside
+    volumes:
+      - slackbotdb:/db/
+      
+  volumes:
+    slackbotdb:
 ```
 
 Then if you have some proxy on docker host (e.g. Nginx), you can redirect requests like this:
