@@ -55,16 +55,18 @@ We have also Dockerfile. If you are using docker-compose you can write config li
       - TRELLO_OAUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
       - PORT=8589
       - REPORT_MONTH_OFFSET_IN_DAYS=16
+      - DEBUG=express:*  # if you want to see bot proxied requests in logs
     restart: always
     ports:
-      - "8589:8589"
+      - "8589:8589"  # for security specify ports only if you have no proxy behind, this will expose ports outside
 ```
 
 Then if you have some proxy on docker host (e.g. Nginx), you can redirect requests like this:
 
 ```
 server {
-  listen $WEB_PORT;
+  listen 80;
+  # ssl configs here if needed
   server_name bots.devforth.io;
 
   location /trellocollector {
