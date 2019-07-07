@@ -22,7 +22,11 @@ Basically you need to start `node index.js` and pass required env variables or c
 
 If you want to host locally for testing purposes use: `ngrok http {PORT}`
 
-Then you need to create Slack app at https://api.slack.com/apps/, go to `Interactive Components` and point `Request URL` to `http(s)://deployed_domain:8589(or your port)/trellocollector`
+Then you need to create Slack app at https://api.slack.com/apps/, go to `Interactive Components` and point `Request URL` to `http(s)://deployed_domain(:or your port)/trellocollector`
+
+You also need to add 2 actions:
+
+![](https://maketips.net/media/uploads/2019/07/07/pvzKRu5V7tSu7DJncm22kE-3e72e872.png)
 
 To get `TRELLO_BOARD_ID`
 
@@ -34,3 +38,39 @@ replace `/office` with `/reports.json` and visit link, e.g. :
 https://trello.com/b/12daFy0n/reports.json
 
 first `id` param will be board id
+
+## Deploy bot to Docker
+
+We have also Dockerfile. If you are using docker-compose you can write config like this
+
+```
+  slackcollectorbot:
+    build: ../trello-price-reports-collector-bot
+    environment:
+      - SLACK_SIGNING_SECRET=xxxxxxxxxxxxxxxxxxxxxx
+      - SLACK_OAUTH_TOKEN=xoxp-xxxxxxxxx-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx 
+      - SLACK_BOT_OAUTH_TOKEN=xoxb-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx
+      - TRELLO_BOARD_ID=xxxxxxxxxxxxxxxxxxxxxx
+      - TRELLO_API_KEY=xxxxxxxxxxxxxxxxxxxxxx
+      - TRELLO_OAUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      - PORT=8589
+      - REPORT_MONTH_OFFSET_IN_DAYS=16
+    restart: always
+    ports:
+      - "8589:8589"
+```
+
+Then if you have some proxy on docker host (e.g. Nginx), you can redirect requests like this:
+
+```
+server {
+  listen $WEB_PORT;
+  server_name bots.devforth.io;
+
+  location /trellocollector {
+      proxy_http_version 1.1;
+      proxy_set_header Connection "";
+      proxy_pass http://slackcollectorbot:8589/;
+  }
+}
+```
