@@ -6,8 +6,7 @@ const { createMessageAdapter } = require('@slack/interactive-messages')
 const slackInteractions = createMessageAdapter(process.env.SLACK_SIGNING_SECRET)
 
 const { WebClient } = require('@slack/web-api');
-const slackApp = new WebClient(process.env.SLACK_OAUTH_TOKEN)
-const slackBot = new WebClient(process.env.SLACK_BOT_OAUTH_TOKEN)
+
 
 const Trello = require("trello");
 const trello = new Trello(process.env.TRELLO_API_KEY, process.env.TRELLO_OAUTH_TOKEN)
@@ -15,7 +14,39 @@ const trello = new Trello(process.env.TRELLO_API_KEY, process.env.TRELLO_OAUTH_T
 const xls = require('excel4node')
 
 const express = require('express')
+const request = require('request-promise')
 const app = express()
+
+const sqlite3 = require('sqlite3').verbose();
+let db;
+
+function createDb() {
+    db = new sqlite3.Database('/db/botCollectorAuth.sqlite3', createTable);
+}
+
+
+function createTable() {
+    db.run("CREATE TABLE IF NOT EXISTS auth (team_id TEXT PRIMARY KEY, resp TEXT)");
+}
+
+
+app.get('/trellocollector/complete', function (req, res) {
+    const oauthURL = `https://slack.com/api/oauth.access?client_id=${process.env.SLACK_APP_CLIENT_ID}&client_secret=${process.env.SLACK_APP_CLIENT_SECRET}&code=${req.query.code}`;
+    console.log('oauth URL', oauthURL)
+    request({
+        url: oauthURL,
+        json: true,
+    }).then((response) => {
+        db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)], (err) => {
+            console.log('error', err)
+        })
+        // console.log('tokens response', response);
+        // res.send(`Bot installed under your team: ${response.team_name} `)
+    }).catch((error) => {
+        res.send(`Error installing bot ${error}`)
+    })
+    
+})
 
 app.use('/trellocollector', slackInteractions.expressMiddleware())
 
@@ -29,6 +60,10 @@ slackInteractions.action('prev_month_report', async (payload, respond) => {
 
 async function sendMonthReport(payload, respond) {
     respond({text: 'Collecting data...'})
+    console.log('Received a command', payload)
+    const slackApp = new WebClient(process.env.SLACK_OAUTH_TOKEN)
+    const slackBot = new WebClient(process.env.SLACK_BOT_OAUTH_TOKEN)
+
     let actual_callback_id = payload.callback_id
     if(payload.type == 'interactive_message')
         actual_callback_id = payload.actions[0].value
