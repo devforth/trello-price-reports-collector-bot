@@ -4,11 +4,11 @@ Bot which shows expenses (or incomes) report collected from trello specified Boa
 
 ```
 Arabica Coffee-11.00
-Arabica Coffee - 11.00 // you can add whitespaces at any place
-Arabica Coffee-  11,00  // you could use comma
-Arabica Coffee - 11.00 x 2  // you can define x2 items
-Arabica Coffee-12x1  // x1 assumed by default
--Arabica Coffee -11.00 x 10  //minus means expenses (assumed by default but you can explicitly specify it)
+Arabica Coffee - 11.00            // you can add whitespaces at any place
+Arabica Coffee-  11,00            // you could use comma
+Arabica Coffee - 11.00 x 2        // you can define x2 items
+Arabica Coffee-12x1               // x1 assumed by default
+-Arabica Coffee -11.00 x 10       // minus means expenses (assumed by default but you can explicitly specify it)
 - Arabica Coffee -11.00x 2
 + Income from sell furniture - 2100.0
 +Income from sell furniture - 2100 x3
