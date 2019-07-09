@@ -9,10 +9,10 @@ Arabica Coffee-11.00
 Arabica Coffee-12x1
 Arabica Coffee - 11.00 x 2
 Arabica Coffee - 11.00 x2
-Arabica Coffee -11.00 x 10
-Arabica Coffee -11.00x 2
-Income from sell furniture - 2100.0 in
-Income from sell furniture - 2100 x3 in
+-Arabica Coffee -11.00 x 10
+- Arabica Coffee -11.00x 2
++ Income from sell furniture - 2100.0
++Income from sell furniture - 2100 x3
 ```
 
 In each comment it seraches for expenses on some products. Then it generates report and summary.
