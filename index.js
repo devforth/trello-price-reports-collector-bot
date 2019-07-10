@@ -70,7 +70,7 @@ function getCredentialsFromDB(id) {
             (err, row) => {
                 if (err) {
                     reject(err.message);
-                }else {
+                } else {
                     resolve(JSON.parse(row.resp))
                 }
             }
@@ -82,7 +82,7 @@ async function sendMonthReport(payload, respond) {
     respond({text: 'Collecting data...'})
     console.log('Received a command', payload)
     let db_resp;
-    try{
+    try {
         db_resp = await getCredentialsFromDB(payload.team.id);
     } catch (err) {
         console.log(err);
@@ -94,10 +94,11 @@ async function sendMonthReport(payload, respond) {
     const slackBot = new WebClient(db_resp.bot_access_token)
 
     let actual_callback_id = payload.callback_id
-    if(payload.type == 'interactive_message')
+    if (payload.type == 'interactive_message') {
         actual_callback_id = payload.actions[0].value
-    let report = await getMonthReport(actual_callback_id).catch(console.error)
-    let xlsReport = await convertReportToXls(report.items).catch(console.error)
+    }
+    const report = await getMonthReport(actual_callback_id).catch(console.error)
+    const xlsReport = await convertReportToXls(report.items).catch(console.error)
     await slackBot.files.upload({
         channels: payload.channel.id,
         file: xlsReport.file,
@@ -183,24 +184,24 @@ async function convertReportToXls(report) {
     let centered = wb.createStyle({
         alignment: { horizontal: 'center' }
     })
-    for(let i = 0; i < keys.length; i++) {
-        let c = ws.cell(1, i+1).string(keys[i])
+    for (let i = 0; i < keys.length; i++) {
+        let c = ws.cell(1, i + 1).string(keys[i])
         if (i != 0) c.style(centered)
     }
 
-    for(let i = 0; i < report.length; i++) {
-        ws.cell(i+2, 1).string(report[i].name).style({alignment: {shrinkToFit: true}})
-        ws.cell(i+2, 2).number(report[i].price).style(centered)
-        ws.cell(i+2, 3).number(report[i].count).style(centered)
-        ws.cell(i+2, 4).number(report[i].totalPrice).style(centered)
-        ws.cell(i+2, 5).date(report[i].date).style(centered)
+    for (let i = 0; i < report.length; i++) {
+        ws.cell(i + 2, 1).string(report[i].name).style({alignment: {shrinkToFit: true}})
+        ws.cell(i + 2, 2).number(report[i].price).style(centered)
+        ws.cell(i + 2, 3).number(report[i].count).style(centered)
+        ws.cell(i + 2, 4).number(report[i].totalPrice).style(centered)
+        ws.cell(i + 2, 5).date(report[i].date).style(centered)
     }
 
     let totalPrice = report.reduce((a, b) => a + (b.totalPrice || 0), 0);
 
     ws.column(1).setWidth(30);
-    ws.cell(report.length+2, 1).string('Total price: ')
-    ws.cell(report.length+2, 2, report.length+2, 5, true).number(totalPrice).style(centered)
+    ws.cell(report.length + 2, 1).string('Total price: ')
+    ws.cell(report.length + 2, 2, report.length + 2, 5, true).number(totalPrice).style(centered)
 
     return {file: await wb.writeToBuffer().catch(console.error), totalPrice: totalPrice}
 }
