@@ -22,7 +22,7 @@ let db;
 
 function createDb() {
     db = new sqlite3.Database(
-        process.env.DB_INSANE_FOLDER === "true" ? 'db/botCollectorAuth.sqlite3' : "/db/botCollectorAuth.sqlite3", 
+        process.env.DB_INSANE_FOLDER ? 'db/botCollectorAuth.sqlite3' : "/db/botCollectorAuth.sqlite3", 
         createTable);
 }
 
@@ -39,21 +39,16 @@ app.get('/trellocollector/complete', function (req, res) {
         url: oauthURL,
         json: true,
     }).then((response) => {
-        if(!response.ok){
+        if(!response.ok) {
             res.send(`Error installing bot ${response.error}`)
         } else {
-            db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)], 
-                (err) => {
-                    console.log('error catched', err)
-                }
-            )
-            console.log("Response!!!", response)
+            db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)])
             res.send(`Bot installed under your team: ${response.team_name} `)
         }
         // console.log('tokens response', response);
         
     }).catch((error) => {
-        res.send(`Error catched installing bot ${error}`)
+        res.send(`Error caught installing bot ${error}`)
     })
     
 })
@@ -74,9 +69,10 @@ function getCredentialsFromDB(id) {
             FROM auth WHERE team_id = ?", [id], 
             (err, row) => {
                 if (err) {
-                reject(err.message);
+                    reject(err.message);
+                }else {
+                    resolve(JSON.parse(row.resp))
                 }
-                resolve(JSON.parse(row.resp))
             }
         )
     )
@@ -85,11 +81,17 @@ function getCredentialsFromDB(id) {
 async function sendMonthReport(payload, respond) {
     respond({text: 'Collecting data...'})
     console.log('Received a command', payload)
+    let db_resp;
+    try{
+        db_resp = await getCredentialsFromDB(payload.team.id);
+    } catch (err) {
+        console.log(err);
+        respond({text: 'Unexpected error occured :('})
+        return {}
+    }
 
-    const db_resp = await getCredentialsFromDB(payload.team.id)
-
-    const slackApp = new WebClient(db_resp["access_token"])
-    const slackBot = new WebClient(db_resp["bot_access_token"])
+    const slackApp = new WebClient(db_resp.access_token)
+    const slackBot = new WebClient(db_resp.bot_access_token)
 
     let actual_callback_id = payload.callback_id
     if(payload.type == 'interactive_message')
