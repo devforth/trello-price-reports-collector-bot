@@ -14,7 +14,7 @@ Arabica Coffee-12x1               // x1 assumed by default
 +Income from sell furniture - 2100 x3
 ```
 
-In each comment it seraches for expenses on some products. Then it generates report and summary.
+In each comment it searches for expenses on some products. Then it generates report and summary.
 
 
 <a href="https://slack.com/oauth/authorize?client_id=600874865104.687770067671&scope=commands,chat:write:bot,files:write:user,bot"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"></a>

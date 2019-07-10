@@ -10,6 +10,8 @@
     "excel4node": "^1.7.2",
     "express": "^4.17.1",
     "moment": "^2.24.0",
+    "ngrok": "^3.2.1",
+    "oauth": "^0.9.15",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "sqlite3": "^4.0.9",

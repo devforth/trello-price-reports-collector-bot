@@ -21,7 +21,9 @@ const sqlite3 = require('sqlite3').verbose();
 let db;
 
 function createDb() {
-    db = new sqlite3.Database('/db/botCollectorAuth.sqlite3', createTable);
+    db = new sqlite3.Database(
+        process.env.DB_INSANE_FOLDER ? 'db/botCollectorAuth.sqlite3' : "/db/botCollectorAuth.sqlite3", 
+        createTable);
 }
 
 
@@ -37,13 +39,16 @@ app.get('/trellocollector/complete', function (req, res) {
         url: oauthURL,
         json: true,
     }).then((response) => {
-        db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)], (err) => {
-            console.log('error', err)
-        })
+        if(!response.ok) {
+            res.send(`Error installing bot ${response.error}`)
+        } else {
+            db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)])
+            res.send(`Bot installed under your team: ${response.team_name} `)
+        }
         // console.log('tokens response', response);
-        // res.send(`Bot installed under your team: ${response.team_name} `)
+        
     }).catch((error) => {
-        res.send(`Error installing bot ${error}`)
+        res.send(`Error caught installing bot ${error}`)
     })
     
 })
@@ -58,17 +63,42 @@ slackInteractions.action('prev_month_report', async (payload, respond) => {
     sendMonthReport(payload, respond)
 })
 
+function getCredentialsFromDB(id) {
+    return new Promise((resolve, reject) => 
+        db.get("SELECT resp \
+            FROM auth WHERE team_id = ?", [id], 
+            (err, row) => {
+                if (err) {
+                    reject(err.message);
+                } else {
+                    resolve(JSON.parse(row.resp))
+                }
+            }
+        )
+    )
+}
+
 async function sendMonthReport(payload, respond) {
     respond({text: 'Collecting data...'})
     console.log('Received a command', payload)
-    const slackApp = new WebClient(process.env.SLACK_OAUTH_TOKEN)
-    const slackBot = new WebClient(process.env.SLACK_BOT_OAUTH_TOKEN)
+    let db_resp;
+    try {
+        db_resp = await getCredentialsFromDB(payload.team.id);
+    } catch (err) {
+        console.log(err);
+        respond({text: 'Unexpected error occured :('})
+        return {}
+    }
+
+    const slackApp = new WebClient(db_resp.access_token)
+    const slackBot = new WebClient(db_resp.bot_access_token)
 
     let actual_callback_id = payload.callback_id
-    if(payload.type == 'interactive_message')
+    if (payload.type == 'interactive_message') {
         actual_callback_id = payload.actions[0].value
-    let report = await getMonthReport(actual_callback_id).catch(console.error)
-    let xlsReport = await convertReportToXls(report.items).catch(console.error)
+    }
+    const report = await getMonthReport(actual_callback_id).catch(console.error)
+    const xlsReport = await convertReportToXls(report.items).catch(console.error)
     await slackBot.files.upload({
         channels: payload.channel.id,
         file: xlsReport.file,
@@ -154,26 +184,26 @@ async function convertReportToXls(report) {
     let centered = wb.createStyle({
         alignment: { horizontal: 'center' }
     })
-    for(let i = 0; i < keys.length; i++) {
-        let c = ws.cell(1, i+1).string(keys[i])
+    for (let i = 0; i < keys.length; i++) {
+        let c = ws.cell(1, i + 1).string(keys[i])
         if (i != 0) c.style(centered)
     }
 
-    for(let i = 0; i < report.length; i++) {
-        ws.cell(i+2, 1).string(report[i].name).style({alignment: {shrinkToFit: true}})
-        ws.cell(i+2, 2).number(report[i].price).style(centered)
-        ws.cell(i+2, 3).number(report[i].count).style(centered)
-        ws.cell(i+2, 4).number(report[i].totalPrice).style(centered)
-        ws.cell(i+2, 5).date(report[i].date).style(centered)
+    for (let i = 0; i < report.length; i++) {
+        ws.cell(i + 2, 1).string(report[i].name).style({alignment: {shrinkToFit: true}})
+        ws.cell(i + 2, 2).number(report[i].price).style(centered)
+        ws.cell(i + 2, 3).number(report[i].count).style(centered)
+        ws.cell(i + 2, 4).number(report[i].totalPrice).style(centered)
+        ws.cell(i + 2, 5).date(report[i].date).style(centered)
     }
 
     let totalPrice = report.reduce((a, b) => a + (b.totalPrice || 0), 0);
 
     ws.column(1).setWidth(30);
-    ws.cell(report.length+2, 1).string('Total price: ')
-    ws.cell(report.length+2, 2, report.length+2, 5, true).number(totalPrice).style(centered)
+    ws.cell(report.length + 2, 1).string('Total price: ')
+    ws.cell(report.length + 2, 2, report.length + 2, 5, true).number(totalPrice).style(centered)
 
     return {file: await wb.writeToBuffer().catch(console.error), totalPrice: totalPrice}
 }
-
+createDb();
 app.listen(process.env.PORT || 8589, () => console.log(`Server is listening on port ${process.env.PORT || 8589}`))
