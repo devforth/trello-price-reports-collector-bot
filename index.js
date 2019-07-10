@@ -109,7 +109,7 @@ async function sendMonthReport(payload, respond) {
 
     await slackApp.chat.postMessage({
         channel: payload.channel.id,
-        text: `Total price for ${report.startRange.format("DD.MM.YYYY")}-${report.endRange.format("DD.MM.YYYY")}: *${xlsReport.totalPrice}*`
+        text: `Total price for ${report.startRange.format("DD.MM.YYYY")}-${report.endRange.format("DD.MM.YYYY")}: *${xlsReport.totalPrice.toFixed(2)}*`
     }).catch(console.error)
 
     await slackApp.chat.postMessage({
@@ -162,7 +162,7 @@ async function getMonthReport(action_id) {
     
     let items = [];
     for(comment of searchMonthComments) {
-        let regex = /(?<name>.+?)\s*[-=]\s*(?<price>\d+[.:]?\d*)(\s*x\s*)?(?<count>\d+)?/
+        let regex = /(?<name>.+?)\s*[-=]\s*(?<price>\d+[.:,]?\d*)(\s*x\s*)?(?<count>\d+)?/
         let lines = comment.data.text.split('\n')
         let matches = lines.map(l => regex.exec(l))
         matches = matches.filter(m => m != null|| m != undefined).map(m => m.groups)
