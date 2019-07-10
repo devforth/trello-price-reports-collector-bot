@@ -21,7 +21,9 @@ const sqlite3 = require('sqlite3').verbose();
 let db;
 
 function createDb() {
-    db = new sqlite3.Database('/db/botCollectorAuth.sqlite3', createTable);
+    db = new sqlite3.Database(
+        process.env.DB_INSANE_FOLDER === "true" ? 'db/botCollectorAuth.sqlite3' : "/db/botCollectorAuth.sqlite3", 
+        createTable);
 }
 
 
@@ -37,13 +39,21 @@ app.get('/trellocollector/complete', function (req, res) {
         url: oauthURL,
         json: true,
     }).then((response) => {
-        db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)], (err) => {
-            console.log('error', err)
-        })
+        if(!response.ok){
+            res.send(`Error installing bot ${response.error}`)
+        } else {
+            db.run(`INSERT INTO auth(team_id,resp) VALUES(?,?)`, [response.team_id, JSON.stringify(response)], 
+                (err) => {
+                    console.log('error catched', err)
+                }
+            )
+            console.log("Response!!!", response)
+            res.send(`Bot installed under your team: ${response.team_name} `)
+        }
         // console.log('tokens response', response);
-        // res.send(`Bot installed under your team: ${response.team_name} `)
+        
     }).catch((error) => {
-        res.send(`Error installing bot ${error}`)
+        res.send(`Error catched installing bot ${error}`)
     })
     
 })
@@ -58,11 +68,28 @@ slackInteractions.action('prev_month_report', async (payload, respond) => {
     sendMonthReport(payload, respond)
 })
 
+function getCredentialsFromDB(id) {
+    return new Promise((resolve, reject) => 
+        db.get("SELECT resp \
+            FROM auth WHERE team_id = ?", [id], 
+            (err, row) => {
+                if (err) {
+                reject(err.message);
+                }
+                resolve(JSON.parse(row.resp))
+            }
+        )
+    )
+}
+
 async function sendMonthReport(payload, respond) {
     respond({text: 'Collecting data...'})
     console.log('Received a command', payload)
-    const slackApp = new WebClient(process.env.SLACK_OAUTH_TOKEN)
-    const slackBot = new WebClient(process.env.SLACK_BOT_OAUTH_TOKEN)
+
+    const db_resp = await getCredentialsFromDB(payload.team.id)
+
+    const slackApp = new WebClient(db_resp["access_token"])
+    const slackBot = new WebClient(db_resp["bot_access_token"])
 
     let actual_callback_id = payload.callback_id
     if(payload.type == 'interactive_message')
@@ -175,5 +202,5 @@ async function convertReportToXls(report) {
 
     return {file: await wb.writeToBuffer().catch(console.error), totalPrice: totalPrice}
 }
-
+createDb();
 app.listen(process.env.PORT || 8589, () => console.log(`Server is listening on port ${process.env.PORT || 8589}`))
