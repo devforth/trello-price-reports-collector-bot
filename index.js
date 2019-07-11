@@ -91,7 +91,7 @@ async function sendMonthReport(payload, respond) {
     }
 
     const slackApp = new WebClient(db_resp.access_token)
-    const slackBot = new WebClient(db_resp.bot_access_token)
+    const slackBot = new WebClient(db_resp.bot.bot_access_token)
 
     let actual_callback_id = payload.callback_id
     if (payload.type == 'interactive_message') {
@@ -109,7 +109,10 @@ async function sendMonthReport(payload, respond) {
 
     await slackApp.chat.postMessage({
         channel: payload.channel.id,
-        text: `Total price for ${report.startRange.format("DD.MM.YYYY")}-${report.endRange.format("DD.MM.YYYY")}: *${xlsReport.totalPrice.toFixed(2)}*`
+        text: `Report for ${report.startRange.format("DD.MM.YYYY")}-${report.endRange.format("DD.MM.YYYY")}:\n\
+         Incomes: *${xlsReport.totalIncome.toFixed(2)}*\n\
+         Expenses: *${xlsReport.totalExpense.toFixed(2)}*\n\
+         Total: *${xlsReport.total.toFixed(2)}*\n`
     }).catch(console.error)
 
     await slackApp.chat.postMessage({
@@ -162,16 +165,19 @@ async function getMonthReport(action_id) {
     
     let items = [];
     for(comment of searchMonthComments) {
-        let regex = /(?<name>.+?)\s*[-=]\s*(?<price>\d+[.:,]?\d*)(\s*x\s*)?(?<count>\d+)?/
+        // console.log("comment", comment)
+        let regex = /(?<income>\+?)(\s*)(?<name>.+?)\s*[-=]\s*(?<price>\d+[.:,]?\d*)(\s*x\s*)?(?<count>\d+)?/
         let lines = comment.data.text.split('\n')
         let matches = lines.map(l => regex.exec(l))
         matches = matches.filter(m => m != null|| m != undefined).map(m => m.groups)
         matches.forEach(m => {
+            // m.liquidity = m.income ? "income" : "expense"
             m.date = comment.date
             m.price = parseFloat(m.price.replace(',', '.'))
             m.count = (parseFloat(m.count) || 1)
             m.totalPrice = m.price * m.count
         })
+        // console.log("matches", matches)
         items = items.concat(matches)
     }
     return {items: items, startRange: startRange, endRange: endRange};
@@ -179,31 +185,56 @@ async function getMonthReport(action_id) {
 
 async function convertReportToXls(report) {
     let wb = new xls.Workbook()
-    let ws = wb.addWorksheet('Report')
-    let keys = ['Name', 'Price', 'Count', 'Total Price', 'Date']
-    let centered = wb.createStyle({
+    ws = wb.addWorksheet('Report Expenses')
+    const incomes = report.filter(item => item.income);
+    const expenses = report.filter(item => !item.income);
+
+    const keys = ['Name', 'Price', 'Count', 'Total Price', 'Date']
+    const centered = wb.createStyle({
         alignment: { horizontal: 'center' }
-    })
+    });
+    const bold = wb.createStyle({
+        alignment: { horizontal: 'center' },
+        font: {
+            bold: true,
+          },
+    });
+
+    const totalIncome = incomes.reduce((acc, item) => acc + (item.totalPrice || 0), 0);
+    const totalExpense = expenses.reduce((acc, item) => acc - (item.totalPrice || 0), 0);
     for (let i = 0; i < keys.length; i++) {
-        let c = ws.cell(1, i + 1).string(keys[i])
-        if (i != 0) c.style(centered)
+        let c = ws.cell(1, i + 1).string(keys[i]).style(bold)
     }
-
-    for (let i = 0; i < report.length; i++) {
-        ws.cell(i + 2, 1).string(report[i].name).style({alignment: {shrinkToFit: true}})
-        ws.cell(i + 2, 2).number(report[i].price).style(centered)
-        ws.cell(i + 2, 3).number(report[i].count).style(centered)
-        ws.cell(i + 2, 4).number(report[i].totalPrice).style(centered)
-        ws.cell(i + 2, 5).date(report[i].date).style(centered)
-    }
-
-    let totalPrice = report.reduce((a, b) => a + (b.totalPrice || 0), 0);
-
+    for (let i = 0; i < expenses.length; i++) {
+        ws.cell(i + 2, 1).string(expenses[i].name).style({alignment: {shrinkToFit: true}})
+        ws.cell(i + 2, 2).number(expenses[i].price).style(centered)
+        ws.cell(i + 2, 3).number(expenses[i].count).style(centered)
+        ws.cell(i + 2, 4).number(expenses[i].totalPrice).style(centered)
+        ws.cell(i + 2, 5).date(expenses[i].date).style(centered)
+    };
     ws.column(1).setWidth(30);
-    ws.cell(report.length + 2, 1).string('Total price: ')
-    ws.cell(report.length + 2, 2, report.length + 2, 5, true).number(totalPrice).style(centered)
+    ws.cell(expenses.length + 2, 1).string('Expenses: ').style({font: {bold: true}})
+    ws.cell(expenses.length + 2, 2, expenses.length + 2, 5, true).number(totalExpense).style(bold)
+    
+    for (let i = 0; i < incomes.length; i++) {
+        ws.cell(expenses.length + i + 4, 1).string(incomes[i].name).style({alignment: {shrinkToFit: true}})
+        ws.cell(expenses.length + i + 4, 2).number(incomes[i].price).style(centered)
+        ws.cell(expenses.length + i + 4, 3).number(incomes[i].count).style(centered)
+        ws.cell(expenses.length + i + 4, 4).number(incomes[i].totalPrice).style(centered)
+        ws.cell(expenses.length + i + 4, 5).date(incomes[i].date).style(centered)
+    }
+    ws.column(1).setWidth(30);
+    ws.cell(report.length + 4, 1).string('Incomes: ').style({font: {bold: true}})
+    ws.cell(report.length + 4, 2, report.length + 4, 5, true).number(totalIncome).style(bold)
+    ws.cell(report.length + 5, 1).string('Total: ').style({font: {bold: true}})
+    ws.cell(report.length + 5, 2, report.length + 5, 5, true).number(totalIncome+totalExpense).style(bold)
 
-    return {file: await wb.writeToBuffer().catch(console.error), totalPrice: totalPrice}
+    return {
+        file: await wb.writeToBuffer().catch(console.error), 
+        totalIncome,
+        totalExpense,
+        total: totalExpense + totalIncome
+    }
 }
 createDb();
 app.listen(process.env.PORT || 8589, () => console.log(`Server is listening on port ${process.env.PORT || 8589}`))
