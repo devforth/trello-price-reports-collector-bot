@@ -1,6 +1,6 @@
 # trello-price-reports-collector-bot
 
-Bot which shows expenses (or incomes) report collected from trello specified Board comments for current or previous month:
+Bot which shows expenses and incomes report collected from trello specified Board comments for current or previous month:
 
 ```
 Arabica Coffee-11.00
@@ -14,17 +14,22 @@ Arabica Coffee-12x1               // x1 assumed by default
 +Income from sell furniture - 2100 x3
 ```
 
-In each comment it searches for expenses on some products. Then it generates report and summary.
+Bot generates XLS report and summary.
 
+Use this button to install it into workspace:
 
 <a href="https://slack.com/oauth/authorize?client_id=600874865104.687770067671&scope=commands,chat:write:bot,files:write:user,bot"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"></a>
 
 
-# How to deploy bot
+## For developers
 
-Basically you need to start `node index.js` and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
+If you want to tune bot, next section describes how to redeploy it. 
 
-If you want to host locally for testing purposes use: `ngrok http {PORT}`
+# How to deploy app and bot 
+
+Basically you need to start `node index.js` (demonized) and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
+
+If you want to host locally for developing purposes use: `ngrok http {PORT}`
 
 Then you need to create Slack app at https://api.slack.com/apps/, go to `Interactive Components` and point `Request URL` to `http(s)://deployed_domain(:or your port)/trellocollector`
 
@@ -51,16 +56,7 @@ We have also Dockerfile. If you are using docker-compose you can write config li
   slackcollectorbot:
     build: ../trello-price-reports-collector-bot
     environment:
-      - SLACK_SIGNING_SECRET=xxxxxxxxxxxxxxxxxxxxxx
-      
-      # !!!!!!!! TODO replace with client id and secret
-      - SLACK_OAUTH_TOKEN=xoxp-xxxxxxxxx-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx 
-      - SLACK_BOT_OAUTH_TOKEN=xoxb-xxxxxxxxx-xxxxxxxxx-xxxxxxxxxxxxxxxxxxxxxx
-      - TRELLO_BOARD_ID=xxxxxxxxxxxxxxxxxxxxxx
-      - TRELLO_API_KEY=xxxxxxxxxxxxxxxxxxxxxx
-      - TRELLO_OAUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-      - PORT=8589
-      - REPORT_MONTH_OFFSET_IN_DAYS=16
+      # variables from .env.sample
       - DEBUG=express:*  # if you want to see bot proxied requests in logs
     restart: always
     ports:
