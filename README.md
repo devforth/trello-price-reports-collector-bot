@@ -1,5 +1,6 @@
-# trello-price-reports-collector-bot
+# Trello price reports collector bot
 
+Simple accounting in trello comments.
 Bot which shows expenses and incomes report collected from trello specified Board comments for current or previous month:
 
 ```
