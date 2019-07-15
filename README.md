@@ -21,11 +21,11 @@ Use this button to install it into workspace:
 <a href="https://slack.com/oauth/authorize?client_id=600874865104.687770067671&scope=commands,chat:write:bot,files:write:user,bot"><img alt="Add to Slack" height="40" width="139" src="https://platform.slack-edge.com/img/add_to_slack.png" srcset="https://platform.slack-edge.com/img/add_to_slack.png 1x, https://platform.slack-edge.com/img/add_to_slack@2x.png 2x"></a>
 
 
-## For developers
+# For developers
 
 If you want to tune bot, next section describes how to redeploy it. 
 
-# How to deploy app and bot 
+### How to deploy app and bot 
 
 Basically you need to start `node index.js` (demonized) and pass required env variables or create `.env` file with these variables in execution folder. Check `.env.sample` to list of required environment variables.
 
@@ -48,7 +48,7 @@ https://trello.com/b/12daFy0n/reports.json
 
 first `id` param will be board id
 
-## Deploy bot to Docker
+### Deploy bot to Docker
 
 We have also Dockerfile. If you are using docker-compose you can write config like this
 
