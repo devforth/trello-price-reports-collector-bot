@@ -146,15 +146,17 @@ async function getMonthReport(action_id) {
     let cards = await trello.getCardsOnBoard(process.env.TRELLO_BOARD_ID).catch(console.error)
     let cards_action_promises = cards.map(card => trello.makeRequest('get', '/1/cards/' + card.id + '/actions', { webhooks: true }))
     let cards_action = await Promise.all(cards_action_promises).catch(console.error)
-    let card_comments = []
 
     cards_action = cards_action.reduce((acc, val) => acc.concat(val), [])
     let comments = cards_action.filter(a => a.type == 'commentCard')
-
+    
     let currentDate = moment()
     
     if (action_id == 'prev_month_report')
         currentDate = currentDate.subtract(1, 'months');
+    
+    if(currentDate.day > process.env.REPORT_MONTH_OFFSET_IN_DAYS)
+        currentDate.add(1, 'month')
 
     let endRange = currentDate.clone()
     endRange.date(1).add(process.env.REPORT_MONTH_OFFSET_IN_DAYS, 'days').subtract(1, 'days')
