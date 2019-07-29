@@ -109,7 +109,7 @@ async function sendMonthReport(payload, respond) {
 
     await slackApp.chat.postMessage({
         channel: payload.channel.id,
-        link_names=true,
+        link_names: true,
         text: `@${payload.user.name} Report for ${report.startRange.format("DD.MM.YYYY")}-${report.endRange.format("DD.MM.YYYY")}:\n\
          Incomes: *${xlsReport.totalIncome.toFixed(2)}*\n\
          Expenses: *${xlsReport.totalExpense.toFixed(2)}*\n\
