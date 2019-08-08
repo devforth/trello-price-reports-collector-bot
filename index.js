@@ -156,8 +156,8 @@ async function getMonthReport(action_id) {
     if (action_id == 'prev_month_report')
         currentDate = currentDate.subtract(1, 'months');
     
-    if(currentDate.day > process.env.REPORT_MONTH_OFFSET_IN_DAYS)
-        currentDate.add(1, 'month')
+    if(currentDate.day() > process.env.REPORT_MONTH_OFFSET_IN_DAYS)
+        currentDate.add(1, 'month');
 
     let endRange = currentDate.clone()
     endRange.date(1).add(process.env.REPORT_MONTH_OFFSET_IN_DAYS, 'days').subtract(1, 'days')
